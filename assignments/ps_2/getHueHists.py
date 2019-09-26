@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
+from utils import rgb2hsv, hsv2rgb
 from quantizeRGB import quantizeRGB
 
-def getHueHists(im, k):
+def getHueHists(im, k, display=True):
 
     w, h, c = im.shape
     hsv_im = rgb2hsv(im)
@@ -14,14 +16,29 @@ def getHueHists(im, k):
     histClustered = np.histogram(segmented_hue, sorted(meanHues.reshape(-1)))
 
     fig = plt.figure(figsize=(10,4))
+    plt.hist(segmented_hue, k)
+    plt.savefig('k={}, Equal Bins.jpg'.format(k))
 
-    ax1 = fig.add_subplot(121, title='Equal Bins')#, xticks=[], yticks=[])
-    plt.subplot(ax1)
-    ax1.hist(segmented_hue, k)
+    fig = plt.figure(figsize=(10,4))
+    plt.hist(segmented_hue, np.concatenate([sorted(meanHues.reshape(-1)), [179]]).astype(int))
+    plt.savefig('k={}, Clustered Bins.jpg'.format(k))
 
-    ax2 = fig.add_subplot(122, title='Cluster Bins')#, xticks=[], yticks=[])
-    plt.subplot(ax2)
-    bins = np.concatenate([sorted(meanHues.reshape(-1)), [255]]).astype(int)
-    ax2.hist(segmented_hue, bins)
+    if display:
+
+        fig = plt.figure(figsize=(10,4))
+        fig.suptitle('k={}'.format(k))
+
+        ax1 = fig.add_subplot(121, title='Equal Bins')#, xticks=[], yticks=[])
+        plt.subplot(ax1)
+        ax1.hist(segmented_hue, k)
+
+        ax2 = fig.add_subplot(122, title='Cluster Bins')#, xticks=[], yticks=[])
+        plt.subplot(ax2)
+        bins = np.concatenate([sorted(meanHues.reshape(-1)), [179]]).astype(int)
+        ax2.hist(segmented_hue, bins)
+
+        plt.show()
+
+    #plt.save()
 
     return histEqual, histClustered

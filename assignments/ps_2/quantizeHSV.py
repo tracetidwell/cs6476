@@ -1,4 +1,6 @@
+from utils import rgb2hsv, hsv2rgb
 from quantizeRGB import quantizeRGB
+
 
 def quantizeHSV(im, k):
 
