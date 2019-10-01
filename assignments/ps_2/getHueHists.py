@@ -13,19 +13,19 @@ def getHueHists(im, k, display=True):
     segmented_hsv_im[:, :, 0] = segmented_hue.reshape(w, h)
 
     histEqual = np.histogram(segmented_hue, k)
-    histClustered = np.histogram(segmented_hue, sorted(meanHues.reshape(-1)))
+    histClustered = np.histogram(segmented_hue, np.concatenate([sorted(meanHues.reshape(-1)), [179]]).astype(int))
 
-    fig = plt.figure(figsize=(10,4))
+    fig = plt.figure(figsize=(5,3))
     plt.hist(segmented_hue, k)
-    plt.savefig('k={}, Equal Bins.jpg'.format(k))
+    plt.savefig('k={}_Equal_Bins.jpg'.format(k))
 
-    fig = plt.figure(figsize=(10,4))
+    fig = plt.figure(figsize=(5,3))
     plt.hist(segmented_hue, np.concatenate([sorted(meanHues.reshape(-1)), [179]]).astype(int))
-    plt.savefig('k={}, Clustered Bins.jpg'.format(k))
+    plt.savefig('k={}_Clustered_Bins.jpg'.format(k))
 
     if display:
 
-        fig = plt.figure(figsize=(10,4))
+        fig = plt.figure(figsize=(10,6))
         fig.suptitle('k={}'.format(k))
 
         ax1 = fig.add_subplot(121, title='Equal Bins')#, xticks=[], yticks=[])

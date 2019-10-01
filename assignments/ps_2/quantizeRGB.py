@@ -22,7 +22,6 @@ def quantizeRGB(origImg, k):
     three_dim = False
     restart = True
 
-
     if len(origImg.shape) == 3:
         three_dim = True
         x, y, z = origImg.shape

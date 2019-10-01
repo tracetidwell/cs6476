@@ -19,6 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('--filename', type=str, default='fish.jpg', help='Filename of image to load')
     parser.add_argument('--k', nargs='*', type=int, action='store', default=[3, 5, 7, 9],
                         help='Filename of image to load')
+    parser.add_argument('--status', action='store_true')
     args = parser.parse_args()
 
     errors = {'rgb': [], 'hsv': []}
@@ -26,6 +27,10 @@ if __name__ == '__main__':
     rgb_im = load_image(args.filename)
 
     for k in args.k:
+
+        if args.status:
+            print('Evaluating k = {} clusters'.format(k))
+            print('---------------------------')
 
         segmented_rgb_im, mean_colors = quantizeRGB(rgb_im, k)
         cv2.imwrite('k={}_segmented_rgb_{}'.format(k, args.filename), segmented_rgb_im)
@@ -43,6 +48,7 @@ if __name__ == '__main__':
     plt.figure(figsize=(8,8))
     plt.xlabel('k (Number of Clusters)')
     plt.ylabel('Quantzation Error (SSD)')
+    plt.xticks(args.k)
     plt.plot(args.k, errors['rgb'], label='RGB Quantization Error')
     plt.plot(args.k, errors['hsv'], label='HSV Quantization Error')
     plt.legend()
