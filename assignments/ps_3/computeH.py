@@ -15,7 +15,7 @@ def computeH(t1, t2):
 
     L = np.array(L)
     s, u, v = np.linalg.svd(L)
-    H = v[8].reshape(3, 3)
+    H = v[-1].reshape(3, 3)
 
     # A = np.matmul(L.T, L)
     # values, vectors = np.linalg.eig(A)
