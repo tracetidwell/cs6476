@@ -2,35 +2,19 @@ import numpy as np
 from utils import to_homogenous_coords
 
 
-def warpImage(inputIm, refIm, H, blend_col=0, step=0.02, merge_type='blend'):
+def warpImage(inputIm, refIm, H, blend_col=0, blend_row=0, step=0.02, merge_type='blend'):
 
     h1, w1, _ = inputIm.shape
     h2, w2, _ = refIm.shape
-
     scale = max(h1, w1, h2, w2) / 2
 
     H_inv = np.linalg.inv(H)
-
-    # P_prime = np.array([(x, y) for x in range(refIm.shape[1]) for y in range(refIm.shape[0])]).T / scale
-    # P_prime_hom = to_homogenous_coords(P_prime)
-    # P = np.matmul(H_inv, P_prime_hom)
-    # P_w, P_h = np.ceil(np.max((P / P[2])[:2] * scale, axis=1)).astype(int)
 
     P = np.array([(j, i) for i in range(inputIm.shape[0]) for j in range(inputIm.shape[1])]).T / scale
     P_hom = to_homogenous_coords(P)
     P_prime = np.matmul(H, P_hom)
     P_prime_w, P_prime_h = np.ceil(np.max((P_prime / P_prime[2])[:2] * scale, axis=1)).astype(int)
-    #P_prime_w = np.ceil(np.max(((P_prime / P_prime[2]) * scale)[0])).astype(int)
-    #P_prime_h = np.ceil(np.max(((P_prime / P_prime[2]) * scale)[1])).astype(int)
 
-    # P_prime_w = int((w1 + w2) * 1.5)
-    # P_prime_h = int((h1 + h2) * 1.2)
-
-    #max_h = max(P_h, P_prime_h, h1, h2)
-    #max_w = max(P_w, P_prime_w, w1, w2)
-    #max_w = 952
-
-    #warpIm = np.zeros((max_h, max_w, 3))
     if P_prime_w > 2 * max(w1, w2) or P_prime_h > 2 * max(h1, h2):
         P_prime_w = 2 * max(w1, w2)
         P_prime_h = 2 * max(h1, h2)
@@ -82,6 +66,9 @@ def warpImage(inputIm, refIm, H, blend_col=0, step=0.02, merge_type='blend'):
         if not blend_col:
             blend_col = w1
 
+        if not blend_row:
+            blend_row = h1
+
         h = max(h1, h2)
         w = max(w1, w2)
         mergeIm = np.zeros((h, w, 3))
@@ -97,7 +84,10 @@ def warpImage(inputIm, refIm, H, blend_col=0, step=0.02, merge_type='blend'):
         mergeIm[:h2, blend_col-blend_len:blend_col] += im2[:, blend_col-blend_len:blend_col] * blend_scale[::-1].reshape(1, -1)[:, :, np.newaxis]
 
         if h2 > h1:
-            mergeIm[h1:h2, :w2, :] = im2[h1:h2, :w2, :]
+            mergeIm[blend_row:, :, :] = im2[blend_row:, :, :]
+            mergeIm[blend_row-blend_len:blend_row, :h1, :] *= blend_scale.reshape(-1, 1)[:, :, np.newaxis]
+            mergeIm[blend_row-blend_len:blend_row, :, :] += im2[blend_row-blend_len:blend_row, :] \
+                                                          * blend_scale[::-1].reshape(-1, 1)[:, :, np.newaxis]
 
     elif merge_type == 'frame':
 

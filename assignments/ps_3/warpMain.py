@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import cv2
 from getCorrespondences import get_correspondences
+from ransac import ransac
 from computeH import computeH
 from verifyH import verifyH
 from warpImage import warpImage
@@ -13,18 +14,24 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Quantize images')
     parser.add_argument('--im_files', nargs='*', type=str, action='store', default=['crop1.jpg', 'crop2.jpg'],
                         help='List of images to be warped')
+    parser.add_argument('--load_corrs', action='store_true', help='Load the correspondences')
     parser.add_argument('--load_corrs_files', nargs='*', type=str, action='store', default=['cc1.npy', 'cc2.npy'],
                         help='List of correspondences to be used for homography calculation')
-    parser.add_argument('--load_corrs', action='store_true', help='Load the correspondences')
     parser.add_argument('--save_corrs', action='store_true', help='Save the correspondences')
-    parser.add_argument('--save_ims', action='store_true', help='Save the new images to file')
     parser.add_argument('--show_ims', action='store_true', help='Show the new images')
-    parser.add_argument('--blend_step', type=float, default=0.02, help='Step size to use when blending images')
-    parser.add_argument('--blend_col', type=int, default=0, help='Column on which to blend images')
+    parser.add_argument('--save_ims', action='store_true', help='Save the new images to file')
     parser.add_argument('--save_prefix', type=str, default='im', help='Prefix for saving images')
-    parser.add_argument('--merge_type', type=str, default='blend', help='Type of image merging to perform')
+
     parser.add_argument('--corr_method', type=str, default='manual', help='Prefix for saving images')
     parser.add_argument('--corr_topn', type=int, default=5, help='Column on which to blend images')
+    parser.add_argument('--use_ransac', action='store_true', help='Show the new images')
+
+    parser.add_argument('--blend_col', type=int, default=0, help='Column on which to blend images')
+    parser.add_argument('--blend_row', type=int, default=0, help='Row on which to blend images')
+    parser.add_argument('--blend_step', type=float, default=0.02, help='Step size to use when blending images')
+    parser.add_argument('--merge_type', type=str, default='blend', help='Type of image merging to perform')
+
+
 
 
     # parser.add_argument('--rs', nargs='*', type=int, action='store', default=[13, 32, 50, 110],
@@ -54,6 +61,11 @@ if __name__ == '__main__':
             im1 = mergeIm
             im2 = ims[i+1]
 
+        h1, w1, _ = im1.shape
+        h2, w2, _ = im2.shape
+
+        scale = max(h1, w1, h2, w2) / 2
+
         if args.load_corrs:
             if len(args.load_corrs_files) == n_ims - 1:
                 t1, t2 = np.load(args.load_corrs_files[0])
@@ -64,13 +76,12 @@ if __name__ == '__main__':
         else:
             t1, t2 = get_correspondences(im1, im2, args.corr_method, args.corr_topn)
 
-            if args.save_corrs:
-                np.save('{}_corrs_{}.npy'.format(args.save_prefix, i), [t1, t2])
+        if args.use_ransac:
 
-        h1, w1, _ = im1.shape
-        h2, w2, _ = im2.shape
+            t1, t2 = ransac(t1, t2, scale)
 
-        scale = max(h1, w1, h2, w2) / 2
+        if args.save_corrs:
+            np.save('{}_corrs_{}.npy'.format(args.save_prefix, i), [t1, t2])
 
         t1_scaled = t1 / scale
         t2_scaled = t2 / scale
@@ -79,7 +90,8 @@ if __name__ == '__main__':
 
         verifiedIm1, verifiedIm2 = verifyH(im1, im2, t1, t2, H)
 
-        warpIm, mergeIm = warpImage(im1, im2, H, args.blend_col, args.blend_step, args.merge_type)
+        warpIm, mergeIm = warpImage(im1, im2, H, args.blend_col, args.blend_row,
+                                    args.blend_step, args.merge_type)
 
         if args.show_ims:
             show(warpIm, 'warped')
