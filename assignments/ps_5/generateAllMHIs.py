@@ -8,13 +8,10 @@ from skimage.io import imread
 from computeMHI import computeMHI
 
 
-def generateAllMHIs(base_dir=None, threshold=39000, save=False,
-                    save_dir=''):
+def generateAllMHIs(base_dir='PS5_Data', threshold=40000, save=False,
+                    save_dir='allMHIs.py', compute_func=computeMHI):
 
-    if base_dir is None:
-        base_dir = 'PS5_Data'
-        actions = sorted(os.listdir(base_dir))
-
+    actions = sorted(os.listdir(base_dir))
     mhis = []
 
     for action in actions:
@@ -25,7 +22,7 @@ def generateAllMHIs(base_dir=None, threshold=39000, save=False,
         for sequence in sequences:
 
             sequence_dir = os.path.join(actions_dir, sequence)
-            mhi = computeMHI(sequence_dir, threshold)
+            mhi = compute_func(sequence_dir, threshold)
             h, w = mhi.shape
             mhis.append(mhi.reshape(h, w, 1))
 
@@ -33,6 +30,6 @@ def generateAllMHIs(base_dir=None, threshold=39000, save=False,
 
     if save:
 
-        np.save(os.path.join(save_dir, 'allMHIs.npy'), mhis)
+        np.save(save_dir, mhis)
 
     return mhis

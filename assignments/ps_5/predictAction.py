@@ -15,4 +15,4 @@ def predictAction(testMoments, trainMoments, trainLabels):
             min_dist = dist
             predictedLabel = label
 
-    return predictedLabel
+    return predictedLabel[0]

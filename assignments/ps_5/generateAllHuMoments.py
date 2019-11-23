@@ -8,19 +8,17 @@ from skimage.io import imread
 from huMoments import huMoments
 
 
-def generateAllHuMoments(mhis_dir=None, scaled=True, save=False, save_dir=''):
-
-    if mhis_dir is None:
-        mhis = np.load('allMHIs.npy')
+def generateAllHuMoments(mhis, scaled=True, save=False, save_dir='allHuMoments.npy',
+						 hu_moment_func=huMoments):
 
     h, w, n_mhis = mhis.shape
 
     moments = np.zeros((n_mhis, 7))
     for i in range(n_mhis):
-        moments[i] = huMoments(mhis[:, :, i], scaled)
+        moments[i] = hu_moment_func(mhis[:, :, i], scaled)
 
     if save:
 
-        np.save(os.path.join(save_dir, 'allHuMoments.npy'), moments)
+        np.save(save_dir, moments)
 
     return moments
