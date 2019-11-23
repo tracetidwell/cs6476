@@ -1,8 +1,6 @@
-import glob
-import pdb
 import os
+import glob
 import numpy as np
-import matplotlib.pyplot as plt
 from skimage.io import imread
 
 
